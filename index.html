@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For San</title>
+    <style>
+        :root {
+            --bg-primary: #FFFFFF;
+            --bg-paper: #FCFAF7;
+            --accent-purple: #6F4A9E;
+            --accent-muted: #A88BC7;
+            --accent-light: #EDE6F5;
+            --text-dark: #17151A;
+            --text-muted: #6F6A73;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-primary);
+            color: var(--text-dark);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Georgia, serif;
+            overflow: hidden;
+        }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.45;
+        }
+
+        .audio-control {
+            position: fixed;
+            top: 1.8rem;
+            right: 1.8rem;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease;
+        }
+
+        .audio-control.visible {
+            opacity: 0.5;
+            visibility: visible;
+        }
+
+        .audio-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--accent-purple);
+            padding: 8px;
+        }
+
+        .audio-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .viewport {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease;
+            overflow-y: auto;
+        }
+
+        .page.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .script-text {
+            font-family: Georgia, serif;
+            font-style: italic;
+            color: var(--accent-purple);
+            font-size: 2.2rem;
+            text-align: center;
+        }
+
+        .heading-serif {
+            font-family: Georgia, serif;
+            font-weight: 300;
+            color: var(--text-dark);
+            font-size: 2.8rem;
+            text-align: center;
+        }
+
+        .uppercase-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--accent-purple);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .body-editorial {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .fade-el {
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .fade-el.visible {
+            opacity: 1;
+        }
+
+        .btn-continue {
+            margin-top: 2.5rem;
+            background: none;
+            border: none;
+            border-bottom: 1px solid var(--accent-purple);
+            font-family: inherit;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 0.4rem 0.8rem;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .btn-continue.visible {
+            opacity: 1;
+        }
+
+        /* Page 4 Story */
+        .story-container {
+            max-width: 580px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .chapter-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--accent-muted);
+            margin-bottom: 0.3rem;
+        }
+
+        .chapter-text {
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Page 5 Memories */
+        .memories-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            max-width: 580px;
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+
+        .memory-line {
+            font-size: 1.25rem;
+            color: var(--text-dark);
+        }
+
+        /* Page 7 Wishes */
+        .wishes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+            max-width: 520px;
+            margin: 1.5rem 0;
+        }
+
+        .wish-item {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .wish-focus {
+            font-size: 1.4rem;
+            color: var(--text-dark);
+            margin-top: 1rem;
+        }
+
+        /* Page 9 Envelope */
+        .envelope-scene {
+            position: relative;
+            width: 280px;
+            height: 180px;
+            background-color: var(--bg-paper);
+            border: 1px solid #EFEAE3;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin: 2rem 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+        }
+
+        /* Page 10 Letter */
+        .letter-container {
+            max-width: 660px;
+            width: 100%;
+            background: var(--bg-paper);
+            padding: 3rem 2rem;
+            border: 1px solid #F0ECE4;
+            border-radius: 4px;
+        }
+
+        .letter-heading {
+            font-size: 2.2rem;
+            font-weight: 400;
+            color: var(--text-dark);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .letter-p {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #2D2A32;
+            margin-bottom: 1.5rem;
+        }
+
+        .final-quote-container {
+            max-width: 600px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="audio-control" id="audioControl">
+        <button class="audio-btn" id="audioToggleBtn" aria-label="Toggle Audio">
+            <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+        </button>
+    </div>
+
+    <audio id="bgAudio" loop preload="auto"></audio>
+
+    <main class="viewport">
+
+        <!-- PAGE 1 -->
+        <section class="page active" id="page-1">
+            <div id="p1-el1" class="script-text fade-el" style="margin-bottom: 1rem;">For someone special...</div>
+            <h1 id="p1-el2" class="heading-serif fade-el">Hey San</h1>
+            <div id="p1-el3" class="fade-el" style="margin: 1rem 0; color: var(--accent-purple);">❤️</div>
+            <p id="p1-el4" class="body-editorial fade-el">I made something for you.</p>
+            <button id="p1-btn" class="btn-continue" onclick="nextPage(2)">Continue →</button>
+        </section>
+
+        <!-- PAGE 2 -->
+        <section class="page" id="page-2">
+            <div id="p2-el1" class="uppercase-label fade-el">FOR SAN</div>
+            <h2 id="p2-el2" class="heading-serif fade-el">Happiest Birthday, San</h2>
+            <div id="p2-el3" class="fade-el" style="margin: 1rem 0;">🌻</div>
+            <p id="p2-el4" class="body-editorial fade-el">Today is a little more special because it belongs to you.</p>
+            <div id="p2-el5" class="script-text fade-el" style="margin-top: 1rem;">And I wanted to make something just for you.</div>
+            <button id="p2-btn" class="btn-continue" onclick="nextPage(3)">Continue →</button>
+        </section>
+
+        <!-- PAGE 3 -->
+        <section class="page" id="page-3">
+            <div id="p3-el1" class="uppercase-label fade-el">A FEW THINGS ABOUT YOU</div>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center; margin: 1.5rem 0;">
+                <div id="p3-el2" class="heading-serif fade-el" style="font-size: 2rem;">You listen.</div>
+                <div id="p3-el3" class="heading-serif fade-el" style="font-size: 2rem;">You care.</div>
+                <div id="p3-el4" class="heading-serif fade-el" style="font-size: 2rem;">
+                    You make difficult days feel a little <span style="color: var(--accent-purple);">lighter</span>.
+                </div>
+                <div id="p3-el5" class="heading-serif fade-el" style="font-size: 2rem;">
+                    And somehow, you make ordinary moments memorable.
+                </div>
+            </div>
+            <button id="p3-btn" class="btn-continue" onclick="nextPage(4)">Continue →</button>
+        </section>
+
+        <!-- PAGE 4 -->
+        <section class="page" id="page-4">
+            <div id="p4-el1" class="uppercase-label fade-el">OUR LITTLE STORY</div>
+            <h2 id="p4-el2" class="heading-serif fade-el" style="margin-bottom: 1.5rem;">Somewhere along the way...</h2>
+            
+            <div class="story-container">
+                <div>
+                    <div id="p4-c1-lbl" class="chapter-label fade-el">THE BEGINNING</div>
+                    <div id="p4-c1-txt" class="chapter-text fade-el">The conversations became something I started looking forward to.</div>
+                </div>
+                <div>
+                    <div id="p4-c2-lbl" class="chapter-label fade-el">THE CONVERSATIONS</div>
+                    <div id="p4-c2-txt" class="chapter-text fade-el">Random talks slowly became memories.</div>
+                </div>
+                <div>
+                    <div id="p4-c3-lbl" class="chapter-label fade-el">THE LITTLE MOMENTS</div>
+                    <div id="p4-c3-txt" class="chapter-text fade-el">The jokes, silly conversations, unexpected messages, and tiny moments.</div>
+                </div>
+                <div>
+                    <div id="p4-c4-lbl" class="chapter-label fade-el">THE DIFFICULT DAYS</div>
+                    <div id="p4-c4-txt" class="chapter-text fade-el">The days when simply having someone to talk to mattered.</div>
+                </div>
+                <div>
+                    <div id="p4-c5-lbl" class="chapter-label fade-el" style="color: var(--accent-purple);">TODAY</div>
+                    <div id="p4-c5-txt" class="chapter-text fade-el" style="font-size: 1.3rem;">Another birthday, another chapter waiting to begin.</div>
+                </div>
+            </div>
+
+            <button id="p4-btn" class="btn-continue" onclick="nextPage(5)">Continue →</button>
+        </section>
+
+        <!-- PAGE 5 -->
+        <section class="page" id="page-5">
+            <h2 id="p5-el1" class="heading-serif fade-el">Little Things Worth Remembering</h2>
+            <div id="p5-el2" class="script-text fade-el" style="margin-bottom: 1.5rem; font-size: 1.5rem;">the moments that never needed a photograph</div>
+
+            <div class="memories-container">
+                <div id="p5-m1" class="memory-line fade-el">Random conversations.</div>
+                <div id="p5-m2" class="memory-line fade-el">Unexpected laughs.</div>
+                <div id="p5-m3" class="memory-line fade-el">Stupid jokes.</div>
+                <div id="p5-m4" class="memory-line fade-el">Those ‘just one more thing’ conversations.</div>
+                <div id="p5-m5" class="memory-line fade-el">Talking about absolutely nothing.</div>
+                <div id="p5-m6" class="memory-line fade-el">Checking in when it mattered.</div>
+                <div id="p5-m7" class="memory-line fade-el" style="color: var(--accent-purple);">Moments that became memories without us noticing.</div>
+            </div>
+
+            <button id="p5-btn" class="btn-continue" onclick="nextPage(6)">Continue →</button>
+        </section>
+
+        <!-- PAGE 6 -->
+        <section class="page" id="page-6">
+            <div id="p6-el1" class="uppercase-label fade-el">A SONG FOR YOU</div>
+            <h2 id="p6-el2" class="heading-serif fade-el" style="max-width: 580px; margin-bottom: 1.5rem;">
+                Some feelings are easier to say with music.
+            </h2>
+            <div id="p6-el3" class="fade-el" style="color: var(--accent-purple); font-size: 1.5rem;">♪</div>
+            <button id="p6-btn" class="btn-continue" onclick="nextPage(7)">Continue →</button>
+        </section>
+
+        <!-- PAGE 7 -->
+        <section class="page" id="page-7">
+            <h2 id="p7-el1" class="heading-serif fade-el">A Little Wish For You</h2>
+            <div id="p7-el2" class="script-text fade-el" style="margin-bottom: 1.5rem; font-size: 1.5rem;">For everything that's still waiting ahead...</div>
+
+            <div class="wishes-container">
+                <div id="p7-w1" class="wish-item fade-el">More reasons to smile.</div>
+                <div id="p7-w2" class="wish-item fade-el">More dreams becoming real.</div>
+                <div id="p7-w3" class="wish-item fade-el">More beautiful places to discover.</div>
+                <div id="p7-w4" class="wish-item fade-el">More moments you'll want to remember.</div>
+                <div id="p7-w5" class="wish-item fade-el">More people who genuinely appreciate you.</div>
+                <div id="p7-w6" class="wish-item fade-el">More peace on the difficult days.</div>
+                <div id="p7-w7" class="wish-item fade-el">And more happiness than you ever expected.</div>
+            </div>
+
+            <div id="p7-focus" class="wish-focus fade-el">May this next chapter be kind to you.</div>
+            <button id="p7-btn" class="btn-continue" onclick="nextPage(8)">Continue →</button>
+        </section>
+
+        <!-- PAGE 8 -->
+        <section class="page" id="page-8">
+            <h2 id="p8-el1" class="heading-serif fade-el" style="margin-bottom: 1.5rem;">One Last Thing...</h2>
+            <p id="p8-el2" class="body-editorial fade-el" style="margin-bottom: 1.5rem;">There was something I wanted to say properly.</p>
+            <div id="p8-el3" class="script-text fade-el">So I wrote it down for you.</div>
+            <button id="p8-btn" class="btn-continue" onclick="nextPage(9)">Continue →</button>
+        </section>
+
+        <!-- PAGE 9 -->
+        <section class="page" id="page-9">
+            <div id="p9-el1" class="uppercase-label fade-el">FOR SAN</div>
+            <p id="p9-el2" class="body-editorial fade-el">A little something I wanted you to keep.</p>
+
+            <div class="envelope-scene fade-el" id="envelopeScene" onclick="nextPage(10)">
+                <div style="font-size: 2rem;">📩 Open Letter</div>
+            </div>
+        </section>
+
+        <!-- PAGE 10 -->
+        <section class="page" id="page-10">
+            <article class="letter-container">
+                <h1 id="p10-head" class="letter-heading fade-el">Happiest Birthday, San ❤️🌻</h1>
+                
+                <div id="p10-body" class="fade-el">
+                    <p class="letter-p">Another year, another reason for me to feel grateful that you’re a part of my life.</p>
+                    <p class="letter-p">When I think about everything we’ve shared, it’s honestly beautiful how naturally you became someone so important to me. There was never a particular moment when it happened. It was built through countless conversations, random talks, laughter, silly moments, difficult days, and all those little memories that became special simply because you were there.</p>
+                    <p class="letter-p">San, one thing I’ll always be grateful for is the way you’ve been there when I needed someone. You listened, understood, cared, and somehow made difficult moments feel a little lighter. There were times when I didn't even know how to explain what I was feeling, yet talking to you still felt easy. I may not have said it enough, but those moments have meant a lot to me.</p>
+                    <p class="letter-p">What I admire most about you is the person you are. Your kindness, your warmth, the way you care about people, and the way you make others feel comfortable just by being yourself.</p>
+                    <p class="letter-p">On your birthday, I hope life gives you everything your heart deserves. Happiness that stays, peace that feels effortless, success that makes you proud, people who genuinely value you, and countless moments that make you smile.</p>
+                    <p class="letter-p" style="text-align: center; font-weight: bold; margin-top: 2rem;">Happy Birthday once again, San. ❤️🌻</p>
+                </div>
+            </article>
+
+            <button id="p10-btn" class="btn-continue" onclick="nextPage(11)" style="margin: 2rem 0;">Continue →</button>
+        </section>
+
+        <!-- PAGE 11 -->
+        <section class="page" id="page-11">
+            <div class="final-quote-container">
+                <blockquote id="finalQuoteBlock" class="heading-serif fade-el" style="font-size: 1.5rem; margin-bottom: 2rem;">
+                    “Years may change, life may change, and we may change with it. But some people leave a place in your heart that time can never replace.”
+                </blockquote>
+
+                <div id="p11-line2" class="fade-el" style="margin-bottom: 2rem;">
+                    <p class="heading-serif" style="font-size: 1.3rem; color: var(--text-muted);">
+                        You’ll always be <span style="color: var(--accent-purple);">one of those people</span> for me. ❤️
+                    </p>
+                </div>
+
+                <div style="margin-top: 2rem; text-align: center;">
+                    <div id="p11-signoff" class="script-text fade-el" style="font-size: 1.8rem; color: var(--text-muted);">
+                        With lots of love and gratitude,
+                    </div>
+                    <div id="p11-author" class="heading-serif fade-el" style="font-size: 2.5rem; color: var(--accent-purple); margin-top: 0.5rem;">
+                        Bala
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const SONG_URL = "audio.mp3"; // Replace with your audio file or keep as audio.mp3
+
+        let currentPage = 1;
+        const bgAudio = document.getElementById('bgAudio');
+        const audioControl = document.getElementById('audioControl');
+
+        if (bgAudio) {
+            bgAudio.src = SONG_URL;
+        }
+
+        // Show page 1 elements immediately on load
+        window.onload = function() {
+            showElements('page-1');
+        };
+
+        function showElements(pageId) {
+            const page = document.getElementById(pageId);
+            if (!page) return;
+            const els = page.querySelectorAll('.fade-el, .btn-continue');
+            els.forEach((el, index) => {
+                setTimeout(() => {
+                    el.classList.add('visible');
+                }, index * 300);
+            });
+        }
+
+        function nextPage(targetPage) {
+            const currentEl = document.getElementById(`page-${currentPage}`);
+            const targetEl = document.getElementById(`page-${targetPage}`);
+
+            if (!targetEl) return;
+
+            if (targetPage === 2 && bgAudio) {
+                bgAudio.play().then(() => {
+                    if (audioControl) audioControl.classList.add('visible');
+                }).catch(() => {});
+            }
+
+            if (currentEl) currentEl.classList.remove('active');
+            
+            targetE
